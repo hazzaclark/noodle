@@ -1,5 +1,5 @@
 # noodle
-Standalone reference for Common C++ Utilities
+Standalone Reference Module for Common C++ Utilities
 
 # Motive:
 
