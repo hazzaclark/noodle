@@ -19,3 +19,15 @@ noodle is a means to maintain and refactor my core utilities/libraries in a sing
 ## Usage:
 
 This project utilises [fmt](https://github.com/fmtlib/fmt) so, you will be require to install this should it be applicable
+
+From there, it is just a case of including the relevant header files and building alongside using your provided build scheme
+
+For CMake, it would be a case of:
+
+```cmake
+find_package(noodle REQUIRED)
+
+target_link_libraries(project_name PRIVATE noodle::noodle)
+``` 
+
+
