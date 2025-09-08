@@ -28,22 +28,6 @@ namespace noodle
         template<typename T>
         using ERROR_MESSAGE = typename std::enable_if<std::is_convertible<T, std::string>::value, T>::type;
 
-        // FORMATTABLE TYPE DETECTION
-        // PRESUPPOSE A GENERIC RETURN ARG
-        template<typename T, typename = void>
-        struct IS_FORMATTABLE : std::false_type {};
-
-        // FORMATTABLE TYPE DETECTION
-        // BY QUERYING THE TYPE OF AN EXPRESSION BASED ON THE VALUE PROVIDED
-        // GREAT FOR HAVING A DETERMINISTIC RETURN TYPE
-        template<typename T>
-        struct IS_FORMATTABLE<T, typename std::enable_if<true, decltype(fmt::format("{}", std::declval<T>()))>::type> : std::true_type {};
-
-        // FORMATTABLE TYPE DETECTION
-        // BASED ON A BOOLEAN EXPRESSION
-        template<typename T>
-        constexpr bool IS_FORMATTABLE_V = IS_FORMATTABLE<T>::value;
-
         enum class ERROR_CATEGORY : U8
         {
             LOGIC_ERR = 0,
