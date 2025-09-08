@@ -1,14 +1,31 @@
 // COPYRIGHT (C) HARRY CLARK 2025
 // A LIGHTWEIGHT IMPLEMENTATION OF COMMON UTILITIES 
 
+#include <noodle/error.hh>
 #include <fmt/core.h>
-#include <fmt/format.h>
 
-#define     HARRY_CLARK       "HARRY CLARK"
-#define     PROJECT_NAME      "COMMON UTILS"
+using namespace noodle::err;
 
-int main(void) 
+// THE FOLLOWING IS A BASIC TEST DESIGNED TO PROPERLY TEST OUT
+// ALL OF THE MACROS AGAINST THEIR TEMPLATED COUNTERPARTS
+
+// THIS DOESNT DO ANYTHING OTHER THAN PROVIDING VALIDITY 
+// FOR HOW THE MACROS CAN BE USED ELSEWHERE
+
+int main(void)
 {
-    fmt::print("{} - {}\n", HARRY_CLARK, PROJECT_NAME);
+    NOODLE_STD_ERROR ERROR1 = NOODLE_ERROR_CTX(404, "NOT FOUND", 
+                    ERROR_CATEGORY::RES_ERR, ERROR_SEVERITY::STD_ERROR);
+
+    fmt::print("ERROR: {} (CODE: {})\n", ERROR1.MSG, ERROR1.CODE);
+
+    NOODLE_STD_ERROR ERROR2 = NOODLE_ERROR_FMT(500, ERROR_CATEGORY::RUNTIME_ERR, 
+                    ERROR_SEVERITY::CRITICAL, 
+                    "FILE: '{}' ERROR: {}", "NOODLE.TXT", "PERMISSION DENIED");
+                    
+    fmt::print("FORMATTED: {}\n", ERROR2.MSG);
+
+    fmt::print("DIRECT: {}\n", NOODLE_FMT("ANSWER: {}", 42));
+    
     return 0;
 }
