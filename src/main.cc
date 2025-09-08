@@ -14,18 +14,20 @@ using namespace noodle::err;
 
 int main(void)
 {
-    NOODLE_STD_ERROR ERROR1 = NOODLE_ERROR_CTX(404, "NOT FOUND", 
+    NOODLE_PRINT("HARRY CLARK - NOODLE (COMMON C++ UTILITES)\n");
+
+    NOODLE_STD_ERROR ERROR1 = NOODLE_ERROR_CTX("RESOURCE ERROR - THROW STD ERROR", 
                     ERROR_CATEGORY::RES_ERR, ERROR_SEVERITY::STD_ERROR);
 
-    fmt::print("ERROR: {} (CODE: {})\n", ERROR1.MSG, ERROR1.CODE);
+    fmt::print("{} CODE: {}\n", ERROR1.MSG, ERROR1.CODE);
 
-    NOODLE_STD_ERROR ERROR2 = NOODLE_ERROR_FMT(500, ERROR_CATEGORY::RUNTIME_ERR, 
+    NOODLE_STD_ERROR ERROR2 = NOODLE_ERROR_FMT(ERROR_CATEGORY::RUNTIME_ERR, 
                     ERROR_SEVERITY::CRITICAL, 
-                    "FILE: '{}' ERROR: {}", "NOODLE.TXT", "PERMISSION DENIED");
+                    "FILE: '{}' ERROR: {}", "NOODLE.TXT", "NOT FOUND");
                     
-    fmt::print("FORMATTED: {}\n", ERROR2.MSG);
+    fmt::print("{}\n", ERROR2.MSG);
 
-    fmt::print("DIRECT: {}\n", NOODLE_FMT("ANSWER: {}", 42));
+    fmt::print("TRACE {}\n", NOODLE_FMT("RETURN VALUE: {}", 42));
     
     return 0;
 }
