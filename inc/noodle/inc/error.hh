@@ -87,9 +87,31 @@ namespace noodle
 
             ERROR_CTX(CODE_TYPE C, MSG_TYPE M, ERROR_CATEGORY CAT, 
                     ERROR_SEVERITY SEV, const char* FILE = __FILE__, int LINE = __LINE__)
-            : CODE(C), MSG(M), CATEGORY(CAT), SEVERITY(SEV), FILE(FILE), LINE(LINE) {}
+            : CODE(C), MSG(std::move(M)), CATEGORY(CAT), SEVERITY(SEV), FILE(FILE), LINE(LINE) {}
+        };
+
+        // COMMON ERROR TYPES - PRESUPPOSED WITH GENERIC ARGS IN RELATION
+        // TO THE ERROR CONTEXT TO BE ABLE TO HANDLE A WIDE VARIETY OF TYPES
+
+        using NOODLE_STD_ERROR = ERROR_CTX<int, std::string>;
+
+        // HELPER FUNCTION TO BE ABLE TO FORMAT A MESSAGE LEVERAGING FMT
+        template<typename... ARGS>
+        static inline std::string NOODLE_FMT(std::string_view FMT_STR, ARGS&&... A)
+        {
+            return fmt::format(FMT_STR, std::forward<ARGS>(A)...) 
+                ? sizeof(ARGS) > 0 : return std::string(FMT_STR);   
         };
     }
 }
+
+    // PRE-PROCESSOR MACROS TO HELP WITH COMPATIBILITY
+    #define     NOODLE_ERROR_CTX(CODE, MSG, CAT, SEV) \
+    noodle::err::ERROR_CTX{(CODE), (MSG), (CAT), (SEV), __FILE__, __LINE__}
+
+    #define     NOODLE_ERROR_FMT(CODE, CAT, SEV, FMT_STR, ...) \
+    noodle::err::NOODLE_STD_ERROR{(CODE), noodle::err::NOODLE_FMT(FMT_STR, ##__VA_ARGS__), \
+                                (CAT), (SEV), __FILE__, __LINE__}
+
 
 #endif
