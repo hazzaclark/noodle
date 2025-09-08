@@ -97,9 +97,16 @@ namespace noodle
         {
             std::string FMT = sizeof...(ARGS) > 0 
                 ? fmt::format(FMT_STR, std::forward<ARGS>(A)...)
-                : FMT_STR;
+                : std::string(FMT_STR);
             
             return fmt::format("{}: {} - {}", GET_ERR_SEVERITY(SEV), GET_ERROR_CODE(), FMT);
+        }
+
+        // OVERLOAD FOR BACKWARD COMPATIBILITY
+        template<typename STR, typename... ARGS>
+        static inline std::string NOODLE_FMT(STR FMT_STR, ARGS&&... A)
+        {
+            return NOODLE_FMT(ERROR_SEVERITY::INFO, FMT_STR, std::forward<ARGS>(A)...);
         }
     }
 }
