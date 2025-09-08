@@ -29,6 +29,11 @@ namespace noodle
         // TEMPLAING FOR HANDLING GENERIC ERROR MESSAGE TYPES
         template<typename T>
         using ERROR_MESSAGE = std::enable_if_t<std::is_convertible<T, std::string_view>>;
+
+        // FORMATTABLE TYPE DETECTION
+        // PRESUPPOSE A GENERIC RETURN ARG
+        template<typename T, typename ...>
+        struct IS_FORMATTABLE : std::false_type {};
     }
 }
 
