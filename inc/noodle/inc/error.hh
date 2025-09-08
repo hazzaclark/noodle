@@ -76,8 +76,18 @@ namespace noodle
         {
             using ERROR_CODE = CODE_TYPE;
             using ERROR_MSG = MSG_TYPE;
+            CODE_TYPE CODE;
+            MSG_TYPE MSG;
+
             ERROR_CATEGORY CATEGORY;
             ERROR_SEVERITY SEVERITY;
+
+            const char* FILE;
+            int LINE;
+
+            ERROR_CTX(CODE_TYPE C, MSG_TYPE M, ERROR_CATEGORY CAT, 
+                    ERROR_SEVERITY SEV, const char* FILE = __FILE__, int LINE = __LINE__)
+            : CODE(C), MSG(M), CATEGORY(CAT), SEVERITY(SEV), FILE(FILE), LINE(LINE) {}
         };
     }
 }
