@@ -1,5 +1,5 @@
 ## COPYRIGHT (C) HARRY CLARK 2025
-## STANDALONE REFERENCE UTILITY FOR SIMULATING THE MOTOROLA 68851 MMU
+## STANDALONE REFERENCE UTILITY FOR COMMON C++ UTILITIES
 
 cmake_minimum_required(VERSION 3.20)
 
@@ -26,4 +26,5 @@ target_compile_options(noodle PRIVATE
     -Wextra
     -Wno-unused-parameter
     -std=c++17
+
 )
