@@ -12,6 +12,7 @@
 #include <fmt/format.h>
 
 // SYSTEM INCLUDES
+#include <atomic>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -20,9 +21,12 @@ namespace noodle
 {
     namespace err
     {
-        // TEMPLATING FOR HANDLING GENERIC ERROR CODE TYPES
-        template<typename T>
-        using ERROR_CODE = typename std::enable_if<std::is_enum<T>::value || std::is_integral<T>::value, T>::type;
+        static std::atomic<int> ERROR_COUNT{0};
+
+        static inline int GET_ERROR_CODE()
+        {
+            return ERROR_COUNT.fetch_add(1);
+        }
 
         // TEMPLATING FOR HANDLING GENERIC ERROR MESSAGE TYPES
         template<typename T>
@@ -68,9 +72,11 @@ namespace noodle
             int LINE;
 
             // INITIALISER WITH BASE CONSTRUCTOR ARGS
-            ERROR_CTX(CODE_TYPE C, MSG_TYPE M, ERROR_CATEGORY CAT, 
+            // UPDATED TO INCLUDE AN AUTO-INCREMENT ARG FOR CATCHING ERROR CODES
+            ERROR_CTX(MSG_TYPE M, ERROR_CATEGORY CAT, 
                     ERROR_SEVERITY SEV, const char* F = __FILE__, int L = __LINE__)
-            : CODE(C), MSG(std::move(M)), CATEGORY(CAT), SEVERITY(SEV), FILE(F), LINE(L) {}
+            : CODE(static_cast<CODE_TYPE>(GET_ERROR_CODE())), 
+              MSG(std::move(M)), CATEGORY(CAT), SEVERITY(SEV), FILE(F), LINE(L) {}
         };
 
         // COMMON ERROR TYPES - PRESUPPOSED WITH GENERIC ARGS IN RELATION
@@ -81,20 +87,22 @@ namespace noodle
         template<typename STR, typename... ARGS>
         static inline std::string NOODLE_FMT(STR FMT_STR, ARGS&&... A)
         {
-            return sizeof...(ARGS) > 0 
+            std::string FMT = sizeof...(ARGS) > 0 
                 ? fmt::format(FMT_STR, std::forward<ARGS>(A)...)
-                : std::string(FMT_STR);
+                : FMT_STR;
+            
+            return fmt::format("ERROR: {} - {}", GET_ERROR_CODE(), FMT);
         }
     }
 }
 
     // PRE-PROCESSOR MACROS TO HELP WITH COMPATIBILITY
     // 08/09/25 - decltype NEEDS TO BE ADDED TO LEVERAGE GENERIC TYPES
-    #define     NOODLE_ERROR_CTX(CODE, MSG, CAT, SEV) \
-    noodle::err::ERROR_CTX<decltype(CODE), std::string>(CODE, std::string(MSG), CAT, SEV, __FILE__, __LINE__)
+    #define     NOODLE_ERROR_CTX(MSG, CAT, SEV) \
+    noodle::err::ERROR_CTX<int, std::string>(std::string(MSG), CAT, SEV, __FILE__, __LINE__)
 
-    #define     NOODLE_ERROR_FMT(CODE, CAT, SEV, FMT_STR, ...) \
-    noodle::err::NOODLE_STD_ERROR(CODE, noodle::err::NOODLE_FMT(FMT_STR, ##__VA_ARGS__), \
+    #define     NOODLE_ERROR_FMT(CAT, SEV, FMT_STR, ...) \
+    noodle::err::NOODLE_STD_ERROR(noodle::err::NOODLE_FMT(FMT_STR, ##__VA_ARGS__), \
                                 CAT, SEV, __FILE__, __LINE__)
 
 #endif
