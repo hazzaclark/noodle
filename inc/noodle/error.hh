@@ -108,6 +108,13 @@ namespace noodle
         {
             return NOODLE_FMT(ERROR_SEVERITY::INFO, FMT_STR, std::forward<ARGS>(A)...);
         }
+
+        // BASELINE PRINT ARGUMENT ADJACENT FROM ERROR FORMATTING
+        template<typename... ARGS>
+        static inline void NOODLE_PRINT(ARGS&&... A)
+        {
+            fmt::print(std::forward<ARGS>(A)...);
+        }
     }
 }
 
