@@ -21,13 +21,6 @@ namespace noodle
 {
     namespace err
     {
-        static std::atomic<int> ERROR_COUNT{0};
-
-        static inline int GET_ERROR_CODE()
-        {
-            return ERROR_COUNT.fetch_add(1);
-        }
-
         // TEMPLATING FOR HANDLING GENERIC ERROR MESSAGE TYPES
         template<typename T>
         using ERROR_MESSAGE = typename std::enable_if<std::is_convertible<T, std::string>::value, T>::type;
@@ -54,6 +47,21 @@ namespace noodle
             WARNING,
             INFO
         };
+
+        // GLOBAL THREAD-SAFE IMPL FOR ERROR COUNT
+        static std::atomic<int> ERROR_COUNT{0};
+
+        // STANDARD HELPER FUNCTION TO ACCOMMODATE FOR ERROR COUNT
+        #define GET_ERROR_CODE() (ERROR_COUNT.fetch_add(1))
+
+        // STANDARD HELPER FUNCTION TO ACCOMMODATE FOR ERROR_SEVERITY
+        #define GET_ERR_SEVERITY(SEV)                       \
+        ((SEV) == ERROR_SEVERITY::FATAL ? "FATAL" :         \
+        (SEV) == ERROR_SEVERITY::CRITICAL ? "CRITICAL" :    \
+        (SEV) == ERROR_SEVERITY::STD_ERROR ? "ERROR" :      \
+        (SEV) == ERROR_SEVERITY::WARNING ? "WARNING" :      \
+        (SEV) == ERROR_SEVERITY::INFO ? "INFO" :            \
+        "UNKNOWN")
 
         // ERROR CONTEXT HANDLER WHICH PRESUPPOSES THE GENERIC TYPES
         // ASSOCIATED WITH AN ERROR TYPE
@@ -85,13 +93,13 @@ namespace noodle
 
         // HELPER FUNCTION TO BE ABLE TO FORMAT A MESSAGE LEVERAGING FMT
         template<typename STR, typename... ARGS>
-        static inline std::string NOODLE_FMT(STR FMT_STR, ARGS&&... A)
+        static inline std::string NOODLE_FMT(ERROR_SEVERITY SEV, STR FMT_STR, ARGS&&... A)
         {
             std::string FMT = sizeof...(ARGS) > 0 
                 ? fmt::format(FMT_STR, std::forward<ARGS>(A)...)
                 : FMT_STR;
             
-            return fmt::format("ERROR: {} - {}", GET_ERROR_CODE(), FMT);
+            return fmt::format("{}: {} - {}", GET_ERR_SEVERITY(SEV), GET_ERROR_CODE(), FMT);
         }
     }
 }
@@ -102,7 +110,7 @@ namespace noodle
     noodle::err::ERROR_CTX<int, std::string>(std::string(MSG), CAT, SEV, __FILE__, __LINE__)
 
     #define     NOODLE_ERROR_FMT(CAT, SEV, FMT_STR, ...) \
-    noodle::err::NOODLE_STD_ERROR(noodle::err::NOODLE_FMT(FMT_STR, ##__VA_ARGS__), \
+    noodle::err::NOODLE_STD_ERROR(noodle::err::NOODLE_FMT(SEV, FMT_STR, ##__VA_ARGS__), \
                                 CAT, SEV, __FILE__, __LINE__)
 
 #endif
