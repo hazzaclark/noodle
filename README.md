@@ -29,6 +29,18 @@ find_package(noodle REQUIRED)
 
 target_link_libraries(project_name PRIVATE noodle::noodle)
 ``` 
+
+## Testing:
+
+For testing utility adjacent from any preceeding project implementation, it's just a case of running
+```
+cmake -DNOODLE_TEST=ON ..
+
+make
+
+./noodle_tests.exe
+```
+
 <p align="center">
   <img src="https://github.com/user-attachments/assets/e7b0f8d1-f3dc-43cc-9d4b-98aa9e9e0af0" alt="gorillaz-dance">
 </p>
