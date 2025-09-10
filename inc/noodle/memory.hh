@@ -74,7 +74,6 @@ namespace fujiko
                 static constexpr U32 PAGE_COUNT = (1U << (ADDRESS_BITS - PAGE_BITS));
 
             private:
-
                 // GENERIC BASELINE IMPLEMMENTATION OF A MEMORY PAGE
                 // UTILISES SMART POINTERS TO HELP WITH DELETE AND MOVE CONSTRUCTS
                 struct MEMORY_PAGE
@@ -130,6 +129,54 @@ namespace fujiko
                         MEM.WRITE_32 = FUJIKO_WRITE_32;
                     }
                 };
+
+                // MAP THE CORRESPONDING ELEMENTS 
+                // FOR THE ASSIGNMENT OF THE VALUES THEMSELVES, WE WILL PRESUPPOSE
+                // THAT IT WILL CARRY OUT THE TYPE CONVERSIONS BASED ON THE ARGS PROVIDED
+                //
+                // USING MY HANDLER_ASSIGN TEMPLATE ALLOWS FOR A SIMPLE MEANS OF DISCERNING THE BYTEWISE LENGTH
+                // OF EACH OPERATIONS AND BEING ABLE TO DYNAMICALLY ALLOCATE
+
+            public:
+                alignas(64) std::vector<MEMORY_PAGE> PAGES;
+                MEMORY_BUS() : PAGES(PAGE_COUNT){}
+
+            // NOW PRESUPPOSE THAT THERE IS A WAY IN WHICH WE ARE ABLE
+            // TO MAP AN ARRAY OF MEMORY TO A SPECIFIED RANGE
+            //
+            // THIS WILL TAKE ON THE FORM AND UNDERSTANDING OF THE ABOVE
+            // BUT REQUIRES THE POWER OF TWO UTILITY FOR PROPER VALIDATION
+            // OVER CONTINGUOUS MEMORY
+            template<std::size_t ARRAY_SIZE>
+            void MAP_ARRAY(U32 START, U32 END, std::array<U8, ARRAY_SIZE> &ARRAY, bool WRITEABLE)
+            {
+                static constexpr U32 MASK = ARRAY_SIZE - 1;
+                
+                const U32 START_INDEX = START >> PAGE_BITS;
+                const U32 END_INDEX = END >> PAGE_BITS;
+                U32 OFFSET = 0;
+
+                // ASSUME TO BEGIN WITH THAT ALL HANDLERS HAVE BEEN CLEARED
+                // FROM THERE, ACCOUNT FOR PROPER SIZING
+
+                for(U32 INDEX = START_INDEX; INDEX <= END_INDEX; INDEX++)
+                {
+                    PAGES[INDEX] = MEMORY_PAGE{};
+                    PAGES[INDEX].ARRAY = &ARRAY[OFFSET & MASK];
+                    PAGES[INDEX].WRITEABLE = WRITEABLE;
+
+                    OFFSET += PAGE_SIZE;
+                }
+            }
+        };
+
+        // CONSTRUCTOR STRUCT ADJACENT FROM THE BASELINE FUNCTIONALITY
+        // TO BE ABLE TO CREATE METHODS
+        struct MEMORY
+        {
+            MEMORY();
+            void RESET(bool MODE);
+            void MAP_MEMORY(MEMORY_BUS& BUS);
         };
     }
 }
