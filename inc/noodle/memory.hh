@@ -15,6 +15,7 @@
 // NESTED INCLUDES
 
 #include <common.hh>
+#include <fmt/core.h>
 
 // SYSTEM INCLUDES
 
@@ -39,13 +40,13 @@ namespace fujiko
         // GENERIC CONVERTIBLE CLAUSE FOR BEING ABLE TO CONVERT BETWEEN TWO GENERICS
         // RETURNS: AN ASSIGNED INTEGRAL CONSTANT
         template <typename T1, typename T2>
-        static inline constexpr bool IS_ASSIGNABLE = std::is_convertible<T1, T2>::value;
+        static constexpr bool IS_ASSIGNABLE = std::is_convertible<T1, T2>::value;
 
         // THE FOLLOWING SERVES TO PROVIDE A TYPE-SAFE MEANS OF BEING ABLE TO ASSIGN
         // RELEVANT SIZES, AND ARGUMENTS IN RELATION TO THE SIZE OF THE MEMORY BUS
         // WHICH PRESUPPOSES THE ARGS PROVIDED THROUGH A GENERIC
         template<typename T>
-        static inline constexpr bool FUJIKO_BUS_HANDLER = IS_ASSIGNABLE<FUJIKO_READ_8, T> 
+        static constexpr bool FUJIKO_BUS_HANDLER = IS_ASSIGNABLE<FUJIKO_READ_8, T> 
                                                         || IS_ASSIGNABLE<FUJIKO_READ_16, T>
                                                         || IS_ASSIGNABLE<FUJIKO_READ_32, T>
                                                         || IS_ASSIGNABLE<FUJIKO_WRITE_8, T>
@@ -78,8 +79,8 @@ namespace fujiko
                 // UTILISES SMART POINTERS TO HELP WITH DELETE AND MOVE CONSTRUCTS
                 struct MEMORY_PAGE
                 {
-                    std::unique_ptr<U8> ARRAY;
-                    std::function<void>& CTX;
+                    U8* ARRAY = nullptr;
+                    void* CTX = nullptr;
                     bool WRITEABLE = false;
                     bool READONLY = false;
 
@@ -103,8 +104,8 @@ namespace fujiko
                 {
                     static void FUJIKO_ASSIGN_8(MEMORY_PAGE& MEM, HANDLER&& HANDLE) 
                     {
-                        MEM.READ_8 = FUJIKO_READ_8;
-                        MEM.WRITE_8 = FUJIKO_WRITE_8;
+                        MEM.READ_8 = READ_8;
+                        MEM.WRITE_8 = WRITE_8;
                     }
                 };
 
@@ -114,8 +115,8 @@ namespace fujiko
                 {
                     static void FUJIKO_ASSIGN_16(MEMORY_PAGE& MEM, HANDLER&& HANDLE) 
                     {
-                        MEM.READ_16 = FUJIKO_READ_16;
-                        MEM.WRITE_16 = FUJIKO_WRITE_16;
+                        MEM.READ_16 = READ_16;
+                        MEM.WRITE_16 = WRITE_16;
                     }
                 };
 
@@ -125,8 +126,8 @@ namespace fujiko
                 {
                     static void FUJIKO_ASSIGN_32(MEMORY_PAGE& MEM, HANDLER&& HANDLE) 
                     {
-                        MEM.READ_32 = FUJIKO_READ_32;
-                        MEM.WRITE_32 = FUJIKO_WRITE_32;
+                        MEM.READ_32 = READ_32;
+                        MEM.WRITE_32 = WRITE_32;
                     }
                 };
 
@@ -141,33 +142,43 @@ namespace fujiko
                 alignas(64) std::vector<MEMORY_PAGE> PAGES;
                 MEMORY_BUS() : PAGES(PAGE_COUNT){}
 
-            // NOW PRESUPPOSE THAT THERE IS A WAY IN WHICH WE ARE ABLE
-            // TO MAP AN ARRAY OF MEMORY TO A SPECIFIED RANGE
-            //
-            // THIS WILL TAKE ON THE FORM AND UNDERSTANDING OF THE ABOVE
-            // BUT REQUIRES THE POWER OF TWO UTILITY FOR PROPER VALIDATION
-            // OVER CONTINGUOUS MEMORY
-            template<std::size_t ARRAY_SIZE>
-            void MAP_ARRAY(U32 START, U32 END, std::array<U8, ARRAY_SIZE> &ARRAY, bool WRITEABLE)
-            {
-                static constexpr U32 MASK = ARRAY_SIZE - 1;
-                
-                const U32 START_INDEX = START >> PAGE_BITS;
-                const U32 END_INDEX = END >> PAGE_BITS;
-                U32 OFFSET = 0;
+                static U8 READ_8(U32, void*) { return 0; }
+                static U16 READ_16(U32, void*) { return 0; }
+                static U32 READ_32(U32, void*) { return 0; }
+                static void WRITE_8(U32, U8, void*) {}
+                static void WRITE_16(U32, U16, void*) {}
+                static void WRITE_32(U32, U32, void*) {}
 
-                // ASSUME TO BEGIN WITH THAT ALL HANDLERS HAVE BEEN CLEARED
-                // FROM THERE, ACCOUNT FOR PROPER SIZING
-
-                for(U32 INDEX = START_INDEX; INDEX <= END_INDEX; INDEX++)
+                // NOW PRESUPPOSE THAT THERE IS A WAY IN WHICH WE ARE ABLE
+                // TO MAP AN ARRAY OF MEMORY TO A SPECIFIED RANGE
+                //
+                // THIS WILL TAKE ON THE FORM AND UNDERSTANDING OF THE ABOVE
+                // BUT REQUIRES THE POWER OF TWO UTILITY FOR PROPER VALIDATION
+                // OVER CONTINGUOUS MEMORY
+                template<std::size_t ARRAY_SIZE>
+                void MAP_ARRAY(U32 START, U32 END, std::array<U8, ARRAY_SIZE> &ARRAY, bool WRITEABLE)
                 {
-                    PAGES[INDEX] = MEMORY_PAGE{};
-                    PAGES[INDEX].ARRAY = &ARRAY[OFFSET & MASK];
-                    PAGES[INDEX].WRITEABLE = WRITEABLE;
+                    static constexpr U32 MASK = ARRAY_SIZE - 1;
+                    
+                    const U32 START_INDEX = START >> PAGE_BITS;
+                    const U32 END_INDEX = END >> PAGE_BITS;
+                    U32 OFFSET = 0;
 
-                    OFFSET += PAGE_SIZE;
+                    fmt::print("START: 0x{:08X}\n", START);
+                    fmt::print("END: 0x{:08X}\n", END);
+
+                    // ASSUME TO BEGIN WITH THAT ALL HANDLERS HAVE BEEN CLEARED
+                    // FROM THERE, ACCOUNT FOR PROPER SIZING
+
+                    for(U32 INDEX = START_INDEX; INDEX <= END_INDEX; INDEX++)
+                    {
+                        PAGES[INDEX] = MEMORY_PAGE{};
+                        PAGES[INDEX].ARRAY =  &ARRAY[OFFSET & MASK];
+                        PAGES[INDEX].WRITEABLE = WRITEABLE;
+
+                        OFFSET += PAGE_SIZE;
+                    }
                 }
-            }
         };
 
         // CONSTRUCTOR STRUCT ADJACENT FROM THE BASELINE FUNCTIONALITY
@@ -178,6 +189,8 @@ namespace fujiko
             void RESET(bool MODE);
             void MAP_MEMORY(MEMORY_BUS& BUS);
         };
+
+        alignas(16) std::array<U8, 0x10000> MEMORY_ARRAY;
     }
 }
 
