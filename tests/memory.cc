@@ -7,9 +7,6 @@
 
 #include <noodle/memory.hh>
 
-#include <iostream>
-#include <iomanip>
-
 using namespace fujiko::memory;
 
 // SIMPLE CONSTRUCTOR FOR MEMORY ALLOCATION
