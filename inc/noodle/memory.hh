@@ -38,13 +38,11 @@ namespace fujiko
 
         // GENERIC CONVERTIBLE CLAUSE FOR BEING ABLE TO CONVERT BETWEEN TWO GENERICS
         // RETURNS: AN ASSIGNED INTEGRAL CONSTANT
-
         template <typename T1, typename T2>
         static inline constexpr bool IS_ASSIGNABLE = std::is_convertible<T1, T2>::value;
 
         // THE FOLLOWING SERVES TO PROVIDE A TYPE-SAFE MEANS OF BEING ABLE TO ASSIGN
         // RELEVANT SIZES, AND ARGUMENTS IN RELATION TO THE SIZE OF THE MEMORY BUS
-        
         // WHICH PRESUPPOSES THE ARGS PROVIDED THROUGH A GENERIC
         template<typename T>
         static inline constexpr bool FUJIKO_BUS_HANDLER = IS_ASSIGNABLE<FUJIKO_READ_8, T> 
