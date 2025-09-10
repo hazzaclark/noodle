@@ -83,6 +83,52 @@ namespace fujiko
                     std::function<void>& CTX;
                     bool WRITEABLE = false;
                     bool READONLY = false;
+
+                    memory::FUJIKO_READ_8 READ_8 = nullptr;
+                    memory::FUJIKO_READ_16 READ_16 = nullptr;
+                    memory::FUJIKO_READ_32 READ_32 = nullptr;
+
+                    memory::FUJIKO_WRITE_8 WRITE_8 = nullptr;
+                    memory::FUJIKO_WRITE_16 WRITE_16 = nullptr;
+                    memory::FUJIKO_WRITE_32 WRITE_32 = nullptr;
+                };
+
+                // DYNAMIC TEMPLATE ATTRIBUTE FOR BEING ABLE TO ASSIGN TYPES BASED ON THEIR
+                // PRESUPPOSED STATE - HELPS WITH READS AND WRITES
+                template<typename HANDLER, typename = void>
+                struct HANDLER_ASSIGN;
+
+                template <typename HANDLER>
+                struct HANDLER_ASSIGN<HANDLER,
+                        std::enable_if_t<sizeof(typename HANDLER::value_type) == 1>> 
+                {
+                    static void FUJIKO_ASSIGN_8(MEMORY_PAGE& MEM, HANDLER&& HANDLE) 
+                    {
+                        MEM.READ_8 = FUJIKO_READ_8;
+                        MEM.WRITE_8 = FUJIKO_WRITE_8;
+                    }
+                };
+
+                template <typename HANDLER>
+                struct HANDLER_ASSIGN<HANDLER,
+                        std::enable_if_t<sizeof(typename HANDLER::value_type) == 2>> 
+                {
+                    static void FUJIKO_ASSIGN_16(MEMORY_PAGE& MEM, HANDLER&& HANDLE) 
+                    {
+                        MEM.READ_16 = FUJIKO_READ_16;
+                        MEM.WRITE_16 = FUJIKO_WRITE_16;
+                    }
+                };
+
+                template <typename HANDLER>
+                struct HANDLER_ASSIGN<HANDLER,
+                        std::enable_if_t<sizeof(typename HANDLER::value_type) == 4>> 
+                {
+                    static void FUJIKO_ASSIGN_32(MEMORY_PAGE& MEM, HANDLER&& HANDLE) 
+                    {
+                        MEM.READ_32 = FUJIKO_READ_32;
+                        MEM.WRITE_32 = FUJIKO_WRITE_32;
+                    }
                 };
         };
     }
