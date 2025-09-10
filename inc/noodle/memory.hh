@@ -52,6 +52,39 @@ namespace fujiko
                                                         || IS_ASSIGNABLE<FUJIKO_WRITE_16, T>
                                                         || IS_ASSIGNABLE<FUJIKO_WRITE_32, T>;
 
+
+        // THE FOLLOWING REPRESENTS THE OVERARCHING BUS INTERCONNECTING COMPONENTS
+        // KEEP IN MIND THAT THIS IS QUITE A DEPARTURE FROM A STANDARD EMULATION PERSAY.
+        // AS WE ARE ONLY CONCERNED WITH PROVIDING A BASE FOR PAGING, MEMORY MANAGEMENT AND BASIC R/W.
+        // WHENEVER WE CREATE AN INSTANCE OF THE MEMORY BUS, WE WILL PRESUPPOSE
+        // THE DEFAULT ELEMENTS TO BE THE FOLLOWING:
+        //
+        // ADDRESS BITS - TO BE OF THAT IN RELATION TO THE AMOUNT OF REGISTERS
+        // PAGE GRANULARITY - DEFINE THE SMALLEST UNIT OF PROTECTED MEMORY
+        //
+        // THE FOLLOWING PARAMETERS CAN BE CHANGED TO SUIT ANY AND ALL CIRCUMSTANCE
+        class MEMORY_BUS
+        {
+            public:
+                static constexpr U32 ADDRESS_BITS = 27;
+                static constexpr U32 ADDRESS_MASK = (1U << ADDRESS_BITS) - 1;
+                static constexpr U32 PAGE_BITS = 16;
+                static constexpr U32 PAGE_SIZE = 1U << PAGE_BITS;
+                static constexpr U32 PAGE_MASK = PAGE_SIZE - 1;
+                static constexpr U32 PAGE_COUNT = (1U << (ADDRESS_BITS - PAGE_BITS));
+
+            private:
+
+                // GENERIC BASELINE IMPLEMMENTATION OF A MEMORY PAGE
+                // UTILISES SMART POINTERS TO HELP WITH DELETE AND MOVE CONSTRUCTS
+                struct MEMORY_PAGE
+                {
+                    std::unique_ptr<U8> ARRAY;
+                    std::function<void>& CTX;
+                    bool WRITEABLE = false;
+                    bool READONLY = false;
+                };
+        };
     }
 }
 
