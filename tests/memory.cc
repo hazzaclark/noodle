@@ -23,6 +23,7 @@ void MEMORY::RESET(bool MODE)
     if(MODE)
     {
         std::fill(MEMORY_ARRAY.begin(), MEMORY_ARRAY.end(), 0x00);
+        fmt::print("MEMORY RESET WITH ADDRESS: {:p}\n", static_cast<void*>(MEMORY_ARRAY.data()));
     }
 }
 
