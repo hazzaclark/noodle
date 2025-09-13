@@ -77,32 +77,6 @@ namespace noodle
         (CAT) == ERROR_CATEGORY::CUSTOM_ERR ? "CUSTOM" :    \
         "UNKNOWN")
 
-        // ERROR CONTEXT HANDLER WHICH PRESUPPOSES THE GENERIC TYPES
-        // ASSOCIATED WITH AN ERROR TYPE
-        template<typename CODE_TYPE = int, typename MSG_TYPE = std::string>
-        struct ERROR_CTX
-        {
-            using ERROR_CODE = CODE_TYPE;
-            using ERROR_MSG = MSG_TYPE;
-
-            typedef CODE_TYPE CODE;
-            typedef MSG_TYPE MSG;
-
-            ERROR_CATEGORY CATEGORY;
-            ERROR_SEVERITY SEVERITY;
-
-            // INITIALISER WITH BASE CONSTRUCTOR ARGS
-            // UPDATED TO INCLUDE AN AUTO-INCREMENT ARG FOR CATCHING ERROR CODES
-            ERROR_CTX(MSG_TYPE M, ERROR_CATEGORY CAT, 
-                    ERROR_SEVERITY SEV)
-            : CODE(static_cast<CODE_TYPE>(GET_ERROR_CODE())), 
-              MSG(std::move(M)), CATEGORY(CAT), SEVERITY(SEV) {}
-        };
-
-        // COMMON ERROR TYPES - PRESUPPOSED WITH GENERIC ARGS IN RELATION
-        // TO THE ERROR CONTEXT TO BE ABLE TO HANDLE A WIDE VARIETY OF TYPES
-        using NOODLE_STD_ERROR = ERROR_CTX<int, std::string>;
-
         // HELPER FUNCTION TO BE ABLE TO FORMAT A MESSAGE LEVERAGING FMT
         template<typename STR, typename... ARGS>
         static inline std::string NOODLE_FMT(ERROR_SEVERITY SEV, STR FMT_STR, ARGS&&... A)
