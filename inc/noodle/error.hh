@@ -63,6 +63,20 @@ namespace noodle
         (SEV) == ERROR_SEVERITY::INFO ? "INFO" :            \
         "UNKNOWN")
 
+        // STANDARD HELPER FUNCTION TO ACCOMMODATE FOR ERROR_CATEGORY
+        #define GET_ERR_CATEGORY(CAT)                       \
+        ((CAT) == ERROR_CATEGORY::LOGIC_ERR ? "LOGIC" :     \
+        (CAT) == ERROR_CATEGORY::RUNTIME_ERR ? "RUNTIME" :  \
+        (CAT) == ERROR_CATEGORY::RES_ERR ? "RESOURCE" :     \
+        (CAT) == ERROR_CATEGORY::INVALID_ARG ? "INVALID_ARG" : \
+        (CAT) == ERROR_CATEGORY::OOB ? "OUT_OF_BOUNDS" :    \
+        (CAT) == ERROR_CATEGORY::NULL_PTR ? "NULL_POINTER" : \
+        (CAT) == ERROR_CATEGORY::UNIMPL ? "UNIMPLEMENTED" : \
+        (CAT) == ERROR_CATEGORY::UNREACH ? "UNREACHABLE" :  \
+        (CAT) == ERROR_CATEGORY::SYS_ERR ? "SYSTEM" :       \
+        (CAT) == ERROR_CATEGORY::CUSTOM_ERR ? "CUSTOM" :    \
+        "UNKNOWN")
+
         // ERROR CONTEXT HANDLER WHICH PRESUPPOSES THE GENERIC TYPES
         // ASSOCIATED WITH AN ERROR TYPE
         template<typename CODE_TYPE = int, typename MSG_TYPE = std::string>
@@ -109,9 +123,27 @@ namespace noodle
             return NOODLE_FMT(ERROR_SEVERITY::INFO, FMT_STR, std::forward<ARGS>(A)...);
         }
 
+        // EXTRA OVERLOAD FUNCTION FOR PRINTING THE ERROR DIRECTLY
+        // AUTOMATICALLY FORMAT THE MESSAGE BEFORE THE PRINT STATEMENT
+        // THIS PRESUPPOSES A GENERIC LENGTH FOR THE MESSAGE AGAINST THE FMT ARG
+        template<typename... ARGS>
+        static inline void NOODLE_PRINT(ERROR_CATEGORY CAT, ERROR_SEVERITY SEV,
+                                        const char* FILE, int LINE,
+                                        const std::string& FMT_STR, ARGS&&... A)
+        {
+            int ERR_CODE = GET_ERROR_CODE();
+            std::string MSG = sizeof ...(A) > 0
+                ? fmt::format(FMT_STR, std::forward<ARGS>(A)...)
+                : FMT_STR;
+
+            fmt::print("[{}]  ->  [{}] ERROR: {} - {} ({}:{})\n", 
+                      GET_ERR_SEVERITY(SEV), GET_ERR_CATEGORY(CAT), 
+                      ERR_CODE, MSG, FILE, LINE);
+        }
+
         // BASELINE PRINT ARGUMENT ADJACENT FROM ERROR FORMATTING
         template<typename... ARGS>
-        static inline void NOODLE_PRINT(ARGS&&... A)
+        static inline void NOODLE_PRINT_BASIC(ARGS&&... A)
         {
             fmt::print(std::forward<ARGS>(A)...);
         }
@@ -119,12 +151,80 @@ namespace noodle
 }
 
     // PRE-PROCESSOR MACROS TO HELP WITH COMPATIBILITY
-    // 08/09/25 - decltype NEEDS TO BE ADDED TO LEVERAGE GENERIC TYPES
-    #define     NOODLE_ERROR_CTX(MSG, CAT, SEV) \
-    noodle::err::ERROR_CTX<int, std::string>(std::string(MSG), CAT, SEV, __FILE__, __LINE__)
+    // THE FOLLOWING ACCESSES THE OVERALL PRINT TEMPLATE 
+    // AND PROVIDES UNIQUE MACROS FOR CONTEXT SPECIFIC HANDLERS
 
-    #define     NOODLE_ERROR_FMT(CAT, SEV, FMT_STR, ...) \
-    noodle::err::NOODLE_STD_ERROR(noodle::err::NOODLE_FMT(SEV, FMT_STR, ##__VA_ARGS__), \
-                                CAT, SEV, __FILE__, __LINE__)
+    #define NOODLE_ERROR_PRINT(CAT, SEV, FMT_STR, ...) \
+    noodle::err::NOODLE_PRINT(CAT, SEV, __FILE__, __LINE__, FMT_STR, ##__VA_ARGS__)
+
+    #define NOODLE_FATAL(FMT_STR, ...) \
+    noodle::err::NOODLE_PRINT(noodle::err::ERROR_CATEGORY::CUSTOM_ERR, \
+                             noodle::err::ERROR_SEVERITY::FATAL, \
+                             __FILE__, __LINE__, FMT_STR, ##__VA_ARGS__)
+
+    #define NOODLE_CRITICAL(FMT_STR, ...) \
+    noodle::err::NOODLE_PRINT(noodle::err::ERROR_CATEGORY::CUSTOM_ERR, \
+                             noodle::err::ERROR_SEVERITY::CRITICAL, \
+                             __FILE__, __LINE__, FMT_STR, ##__VA_ARGS__)
+
+    #define NOODLE_ERROR(FMT_STR, ...) \
+    noodle::err::NOODLE_PRINT(noodle::err::ERROR_CATEGORY::CUSTOM_ERR, \
+                             noodle::err::ERROR_SEVERITY::STD_ERROR, \
+                             __FILE__, __LINE__, FMT_STR, ##__VA_ARGS__)
+
+    #define NOODLE_WARNING(FMT_STR, ...) \
+    noodle::err::NOODLE_PRINT(noodle::err::ERROR_CATEGORY::CUSTOM_ERR, \
+                             noodle::err::ERROR_SEVERITY::WARNING, \
+                             __FILE__, __LINE__, FMT_STR, ##__VA_ARGS__)
+
+    #define NOODLE_INFO(FMT_STR, ...) \
+    noodle::err::NOODLE_PRINT(noodle::err::ERROR_CATEGORY::CUSTOM_ERR, \
+                             noodle::err::ERROR_SEVERITY::INFO, \
+                             __FILE__, __LINE__, FMT_STR, ##__VA_ARGS__)
+
+    #define NOODLE_LOGIC_ERROR(FMT_STR, ...) \
+    noodle::err::NOODLE_PRINT(noodle::err::ERROR_CATEGORY::LOGIC_ERR, \
+                             noodle::err::ERROR_SEVERITY::STD_ERROR, \
+                             __FILE__, __LINE__, FMT_STR, ##__VA_ARGS__)
+
+    #define NOODLE_RUNTIME_ERROR(FMT_STR, ...) \
+    noodle::err::NOODLE_PRINT(noodle::err::ERROR_CATEGORY::RUNTIME_ERR, \
+                             noodle::err::ERROR_SEVERITY::STD_ERROR, \
+                             __FILE__, __LINE__, FMT_STR, ##__VA_ARGS__)
+
+    #define NOODLE_RESOURCE_ERROR(FMT_STR, ...) \
+    noodle::err::NOODLE_PRINT(noodle::err::ERROR_CATEGORY::RES_ERR, \
+                             noodle::err::ERROR_SEVERITY::STD_ERROR, \
+                             __FILE__, __LINE__, FMT_STR, ##__VA_ARGS__)
+
+    #define NOODLE_INVALID_ARG_ERROR(FMT_STR, ...) \
+    noodle::err::NOODLE_PRINT(noodle::err::ERROR_CATEGORY::INVALID_ARG, \
+                             noodle::err::ERROR_SEVERITY::STD_ERROR, \
+                             __FILE__, __LINE__, FMT_STR, ##__VA_ARGS__)
+
+    #define NOODLE_OOB_ERROR(FMT_STR, ...) \
+    noodle::err::NOODLE_PRINT(noodle::err::ERROR_CATEGORY::OOB, \
+                             noodle::err::ERROR_SEVERITY::STD_ERROR, \
+                             __FILE__, __LINE__, FMT_STR, ##__VA_ARGS__)
+
+    #define NOODLE_NULL_PTR_ERROR(FMT_STR, ...) \
+    noodle::err::NOODLE_PRINT(noodle::err::ERROR_CATEGORY::NULL_PTR, \
+                             noodle::err::ERROR_SEVERITY::STD_ERROR, \
+                             __FILE__, __LINE__, FMT_STR, ##__VA_ARGS__)
+
+    #define NOODLE_UNIMPL_ERROR(FMT_STR, ...) \
+    noodle::err::NOODLE_PRINT(noodle::err::ERROR_CATEGORY::UNIMPL, \
+                             noodle::err::ERROR_SEVERITY::STD_ERROR, \
+                             __FILE__, __LINE__, FMT_STR, ##__VA_ARGS__)
+
+    #define NOODLE_UNREACH_ERROR(FMT_STR, ...) \
+    noodle::err::NOODLE_PRINT(noodle::err::ERROR_CATEGORY::UNREACH, \
+                             noodle::err::ERROR_SEVERITY::STD_ERROR, \
+                             __FILE__, __LINE__, FMT_STR, ##__VA_ARGS__)
+
+    #define NOODLE_SYSTEM_ERROR(FMT_STR, ...) \
+    noodle::err::NOODLE_PRINT(noodle::err::ERROR_CATEGORY::SYS_ERR, \
+                             noodle::err::ERROR_SEVERITY::STD_ERROR, \
+                             __FILE__, __LINE__, FMT_STR, ##__VA_ARGS__)
 
 #endif
