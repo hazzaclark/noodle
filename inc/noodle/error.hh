@@ -136,7 +136,7 @@ namespace noodle
                 ? fmt::format(FMT_STR, std::forward<ARGS>(A)...)
                 : FMT_STR;
 
-            fmt::print("[{}]  ->  [{}] ERROR: {} - {} ({}:{})\n", 
+            fmt::print("[{}] [{}]       \nERROR: {} - {} ({}:{})\n\n", 
                       GET_ERR_SEVERITY(SEV), GET_ERR_CATEGORY(CAT), 
                       ERR_CODE, MSG, FILE, LINE);
         }
