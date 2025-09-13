@@ -20,7 +20,7 @@ int main(void)
                       "SOME FILE WAS NOT FOUND - OOPSIE");
     
     NOODLE_ERROR_PRINT(ERROR_CATEGORY::RUNTIME_ERR, ERROR_SEVERITY::CRITICAL, 
-                      "'{}' {}", "NOODLE.TXT", "NOT FOUND");
+                      "'{}' {}", "EVIL_NOODLE.EXE", "NOT FOUND");
 
     NOODLE_WARNING("USE THIS FOR GENERAL WARNING CATCHES");
     NOODLE_INFO("NOODLE FROM GORILLAZ");
