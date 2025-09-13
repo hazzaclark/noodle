@@ -84,8 +84,9 @@ namespace noodle
         {
             using ERROR_CODE = CODE_TYPE;
             using ERROR_MSG = MSG_TYPE;
-            CODE_TYPE CODE;
-            MSG_TYPE MSG;
+
+            typedef CODE_TYPE CODE;
+            typedef MSG_TYPE MSG;
 
             ERROR_CATEGORY CATEGORY;
             ERROR_SEVERITY SEVERITY;
